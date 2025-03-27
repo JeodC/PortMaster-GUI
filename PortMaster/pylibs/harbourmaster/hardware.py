@@ -1,4 +1,6 @@
 
+# SPDX-License-Identifier: MIT
+
 # System imports
 import copy
 import datetime
@@ -38,6 +40,7 @@ DEVICES = {
     "Anbernic RG35XX PLUS": {"device": "rg35xx-plus", "manufacturer": "Anbernic",  "cfw": ["muOS", "Knulli", "ROCKNIX"]},
     "Anbernic RG35XX H":    {"device": "rg35xx-h",    "manufacturer": "Anbernic",  "cfw": ["muOS", "Knulli", "ROCKNIX"]},
     "Anbernic RG35XX SP":   {"device": "rg35xx-sp",   "manufacturer": "Anbernic",  "cfw": ["muOS", "Knulli", "ROCKNIX"]},
+    "Anbernic RG34XX":      {"device": "rg34xx-h",    "manufacturer": "Anbernic",  "cfw": ["muOS", "Knulli", "ROCKNIX"]},
     "Anbernic RG28XX":      {"device": "rg28xx",      "manufacturer": "Anbernic",  "cfw": ["muOS", "Knulli", "ROCKNIX"]},
     "Anbernic RG351P/M":    {"device": "rg351p",      "manufacturer": "Anbernic",  "cfw": ["ArkOS (Wummle)", "AmberELEC", "ROCKNIX"]},
     "Anbernic RG351V":      {"device": "rg351v",      "manufacturer": "Anbernic",  "cfw": ["ArkOS", "AmberELEC", "ROCKNIX"]},
@@ -97,10 +100,11 @@ HW_INFO = {
 
     # Anbernic RG35XX
     "rg40xx-h":    {"resolution": (640, 480), "analogsticks": 2, "cpu": "h700", "capabilities": ["power"], "ram": 1024},
-    "rg40xx-v":    {"resolution": (640, 480), "analogsticks": 2, "cpu": "h700", "capabilities": ["power"], "ram": 1024},
+    "rg40xx-v":    {"resolution": (640, 480), "analogsticks": 1, "cpu": "h700", "capabilities": ["power"], "ram": 1024},
     "rg35xx-h":    {"resolution": (640, 480), "analogsticks": 2, "cpu": "h700", "capabilities": ["power"], "ram": 1024},
     "rg35xx-plus": {"resolution": (640, 480), "analogsticks": 0, "cpu": "h700", "capabilities": ["power"], "ram": 1024},
     "rg35xx-sp":   {"resolution": (640, 480), "analogsticks": 0, "cpu": "h700", "capabilities": ["power"], "ram": 1024},
+    "rg34xx-h":    {"resolution": (720, 480), "analogsticks": 0, "cpu": "h700", "capabilities": ["power"], "ram": 1024},
     "rg28xx":      {"resolution": (640, 480), "analogsticks": 0, "cpu": "h700", "capabilities": ["power"], "ram": 1024},
     "rg35xx":      {"resolution": (640, 480), "analogsticks": 0, "cpu": "h700", "capabilities": [], "ram": 256},
 
@@ -120,6 +124,9 @@ HW_INFO = {
     "rgb30":        {"resolution": ( 720, 720), "analogsticks": 2, "cpu": "rk3566", "capabilities": ["power"], "ram": 1024},
     "rk2023":       {"resolution": ( 640, 480), "analogsticks": 2, "cpu": "rk3566", "capabilities": ["power"], "ram": 1024},
     "rk2020":       {"resolution": ( 480, 320), "analogsticks": 1, "cpu": "rk3326", "capabilities": [], "ram": 1024},
+
+    # Miyoo
+    "miyoo-flip":   {"resolution": ( 640,  480), "analogsticks": 2, "cpu": "rk3566", "capabilities": ["power"], "ram": 1024},
 
     # Gameforce Chi / Ace
     "chi":       {"resolution": ( 640,  480), "analogsticks": 2, "cpu": "rk3326", "capabilities": [], "ram": 1024},
@@ -173,6 +180,7 @@ CFW_INFO = {
 CPU_INFO = {
     "rk3326":        {"capabilities": ["armhf", "aarch64"], "primary_arch": "aarch64"},
     "rk3399":        {"capabilities": ["armhf", "aarch64"], "primary_arch": "aarch64"},
+    "rk3566-miyoo":  {"capabilities": ["aarch64"],          "primary_arch": "aarch64"},
     "rk3566":        {"capabilities": ["armhf", "aarch64"], "primary_arch": "aarch64"},
     "rk3588":        {"capabilities": ["armhf", "aarch64"], "primary_arch": "aarch64"},
     "h700-knulli":   {"capabilities": ["aarch64"],          "primary_arch": "aarch64"},
@@ -182,6 +190,7 @@ CPU_INFO = {
     "a133plus":      {"capabilities": ["aarch64"],          "primary_arch": "aarch64"},
     "x86_64":        {"capabilities": ["x86_64"],           "primary_arch": "x86_64"},
     "s922x":         {"capabilities": ["aarch64"],          "primary_arch": "aarch64"},
+    "sd865":         {"capabilities": ["armhf", "aarch64"], "primary_arch": "aarch64"},
     "unknown":       {"capabilities": ["armhf", "aarch64"], "primary_arch": "aarch64"},
     }
 
@@ -193,6 +202,7 @@ GLIBC_INFO = {
     "muos-*":      "2.38",
     "amberelec-*": "2.38",
     "rocknix-*":   "2.40",
+    "miyoo-*":     "2.36",
 
     "default":     "2.30",
     }
@@ -307,6 +317,7 @@ def nice_device_to_device(raw_device):
         ('powkiddy x55',             'x55'),
 
         ('anbernic rg28xx*',      'rg28xx'),
+        ('anbernic rg34xx*',      'rg34xx-h'),
         ('anbernic rg35xx h*',    'rg35xx-h'),
         ('anbernic rg35xx sp*',   'rg35xx-sp'),
         ('anbernic rg35xx plus*', 'rg35xx-plus'),
@@ -315,6 +326,8 @@ def nice_device_to_device(raw_device):
 
         ('anbernic rg40xx*',      'rg40xx-h'),
         ('anbernic rg35xx*',      'rg35xx-h'),
+
+        ('miyoo rk3566 355 v10*', 'miyoo-flip'),
 
         ('anbernic rg351mp*', 'rg351mp'),
         ('anbernic rg351v*',  'rg351v'),
@@ -333,7 +346,7 @@ def nice_device_to_device(raw_device):
         )
 
     for pattern, device in pattern_to_device:
-        logger.debug(f'{raw_device} -> {pattern}')
+        # logger.debug(f'{raw_device} -> {pattern}')
         if fnmatch.fnmatch(raw_device, pattern):
             raw_device = device
             break
@@ -394,6 +407,12 @@ def new_device_info():
             info['name'] = result[0].split(' ', 1)[0]
             info['version'] = result[1]
 
+    # Miyoo!
+    miyoo_version = safe_cat('/usr/miyoo/version')
+    if miyoo_version != '':
+        info['name'] = 'Miyoo'
+        info['version'] = miyoo_version.strip()
+
     # Works on uOS / JELOS / AmberELEC / muOS / ROCKNIX
     sfdbm = safe_cat('/sys/firmware/devicetree/base/model')
     if sfdbm != '':
@@ -433,6 +452,10 @@ def new_device_info():
 
     if 'device' not in info:
         info['device'] = old_device_info()
+
+    usr_trimui_res_enlang = safe_cat('/usr/trimui/res/lang/en.lang')
+    if 'Dpad to Analog Key(hold)' in usr_trimui_res_enlang:
+        info['device'] = 'trimui-brick'
 
     info['device'] = info['device'].lower().replace(' ', '-')
 
@@ -564,16 +587,16 @@ def expand_info(info, override_resolution=None, override_ram=None, use_old_cpu_i
     if use_old_cpu_info:
         _name, _device = info['name'].lower(), info['device'].lower()
         if f"{_name}-{_device}" in GLIBC_INFO:
-            _merge_info(info, GLIBC_INFO[f"{_name}-{_device}"])
+            info['glibc'] = GLIBC_INFO[f"{_name}-{_device}"]
 
         elif f"{_name}-*" in GLIBC_INFO:
-            _merge_info(info, GLIBC_INFO[f"{_name}-*"])
+            info['glibc'] = GLIBC_INFO[f"{_name}-*"]
 
         elif f"*-{_device}" in GLIBC_INFO:
-            _merge_info(info, GLIBC_INFO[f"*-{_device}"])
+            info['glibc'] = GLIBC_INFO[f"*-{_device}"]
 
         else:
-            _merge_info(info, GLIBC_INFO['default'])
+            info['glibc'] = GLIBC_INFO['default']
 
     else:
         info['glibc'] = get_glibc_version()
